@@ -45,8 +45,16 @@ async function run() {
             res.send(result);
         });
 
-        // job application apis 
-        app.post('/job-application', async(req,res)=> {
+        // job application apis
+        // get all data , get one data , get some data [0,1,many]
+        app.get('/job-application', async(req,res)=>{
+            const email = req.query.email;
+            const query = {applicant_email: email}
+            const result = await jobApplicationCollection.find(query).toArray();
+            res.send(result)
+        })
+        
+        app.post('/job-applications', async(req,res)=> {
             const application = req.body;
             const result = await jobApplicationCollection.insertOne(application)
             res.send(result)
