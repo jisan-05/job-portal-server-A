@@ -34,7 +34,13 @@ async function run() {
         const jobApplicationCollection = client.db("jobPortalA").collection("job_application")
 
         app.get("/jobs", async (req, res) => {
-            const cursor = JobsCollection.find();
+            const email = req.query.email;
+            let query = {};
+            if(email){
+                query = { hr_email: email }
+            }
+
+            const cursor = JobsCollection.find(query);
             const result = await cursor.toArray();
             res.send(result);
         });
@@ -44,6 +50,12 @@ async function run() {
             const result = await JobsCollection.findOne(query);
             res.send(result);
         });
+
+        app.post('/jobs',async(req,res)=> {
+            const newJob = req.body;
+            const result = await JobsCollection.insertOne(newJob)
+            res.send(result)
+        })
 
         // job application apis
         // get all data , get one data , get some data [0,1,many]
@@ -71,6 +83,30 @@ async function run() {
         app.post('/job-applications', async(req,res)=> {
             const application = req.body;
             const result = await jobApplicationCollection.insertOne(application)
+
+            // Not the Best Way (User aggregate)
+            // skip --> it
+            const id = application.job_id;
+            const query = {_id : new ObjectId(id)}
+            const job = await JobsCollection.findOne(query);
+            let newCount = 0;
+            if(job.applicationCount){
+                newCount = job.application + 1;
+            }
+            else{
+                newCount = 1;
+            }
+
+            // now update the job info
+            const filter = {_id: new ObjectId(id)}
+            const updateDoc = {
+                $set:{
+                    applicationCount: newCount
+                }
+            }
+
+            const updateResult = await JobsCollection.updateOne(filter,updateDoc);
+
             res.send(result)
         })
 
