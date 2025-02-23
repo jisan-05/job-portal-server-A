@@ -115,9 +115,9 @@ async function run() {
 
             const updateResult = await JobsCollection.updateOne(filter,updateDoc);
 
-            res.send(result)
+            res.send(result);
         })
-
+ 
         app.patch('/job-applications/:id', async(req,res) => {
             const id = req.params.id;
             const data = req.body;
