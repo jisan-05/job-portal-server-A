@@ -21,21 +21,21 @@ const logger = (req, res, next) => {
     next();
 };
 
-const verifyToken = (req, res, next) => {
-    console.log("inside verify token middleware", req.cookies);
+const verifyToken = (req,res,next) =>{
     const token = req?.cookies?.token;
-
-    if (!token) {
-        return res.send(401).send({ message: "Unauthorize Access" });
+    if(!token){
+        return res.status(401).send({message: 'unAuthorized access'})
     }
-
-    jwt.verify(token, process.env.ACCESS_SECRET_TOKEN, (err,decoded) =>{
-        if (err) {
-            return res.status(401).send({ message: "Unauthorize Access" });
+    jwt.verify(token, process.env.ACCESS_SECRET_TOKEN, (err,decoded) => {
+        if(err){
+            return res.status(401).send({message: 'UnAuthorized Access'})
         }
+        req.user = decoded;
         next();
     })
-};
+    
+}
+
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.pmlso.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -107,6 +107,10 @@ async function run() {
         app.get("/job-application", verifyToken, async (req, res) => {
             const email = req.query.email;
             const query = { applicant_email: email };
+
+            if(req.user.email !== req.query.email ){
+                return res.status(403).send({message: 'forbidden access'})
+            }
 
             console.log("cuk cuk cookies", req.cookies);
 
